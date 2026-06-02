@@ -1,27 +1,20 @@
 #!/usr/bin/python3
+"""AirBnB console"""
+
 import cmd
+from models import storage
 from models.base_model import BaseModel
 from models.user import User
-from models.place import Place
-from models.state import State
-from models.city import City
-from models.amenity import Amenity
-from models.review import Review
-from models import storage
 
 
 classes = {
     "BaseModel": BaseModel,
-    "User": User,
-    "Place": Place,
-    "State": State,
-    "City": City,
-    "Amenity": Amenity,
-    "Review": Review
+    "User": User
 }
 
 
 class HBNBCommand(cmd.Cmd):
+    """Command interpreter"""
     prompt = "(hbnb) "
 
     def emptyline(self):
@@ -31,9 +24,10 @@ class HBNBCommand(cmd.Cmd):
         return True
 
     def do_EOF(self, arg):
-        print("")
+        print()
         return True
 
+    # ---------------- CREATE ----------------
     def do_create(self, arg):
         args = arg.split()
 
@@ -46,10 +40,10 @@ class HBNBCommand(cmd.Cmd):
             return
 
         obj = classes[args[0]]()
-        storage.new(obj)
-        storage.save()
+        obj.save()
         print(obj.id)
 
+    # ---------------- SHOW ----------------
     def do_show(self, arg):
         args = arg.split()
 
@@ -65,15 +59,16 @@ class HBNBCommand(cmd.Cmd):
             print("** instance id missing **")
             return
 
-        key = args[0] + "." + args[1]
-        objs = storage.all()
+        key = f"{args[0]}.{args[1]}"
+        objects = storage.all()
 
-        if key not in objs:
+        if key not in objects:
             print("** no instance found **")
             return
 
-        print(objs[key])
+        print(objects[key])
 
+    # ---------------- DESTROY ----------------
     def do_destroy(self, arg):
         args = arg.split()
 
@@ -89,32 +84,40 @@ class HBNBCommand(cmd.Cmd):
             print("** instance id missing **")
             return
 
-        key = args[0] + "." + args[1]
-        objs = storage.all()
+        key = f"{args[0]}.{args[1]}"
+        objects = storage.all()
 
-        if key not in objs:
+        if key not in objects:
             print("** no instance found **")
             return
 
-        del objs[key]
+        del objects[key]
         storage.save()
 
+    # ---------------- ALL ----------------
     def do_all(self, arg):
         args = arg.split()
-        objs = storage.all()
+        objects = storage.all()
 
-        if len(args) > 0:
-            if args[0] not in classes:
-                print("** class doesn't exist **")
-                return
-            objs = {
-                k: v for k, v in objs.items()
-                if k.startswith(args[0] + ".")
-            }
+        result = []
 
-        for obj in objs.values():
-            print(obj)
+        if len(args) == 0:
+            for obj in objects.values():
+                result.append(str(obj))
+            print(result)
+            return
 
+        if args[0] not in classes:
+            print("** class doesn't exist **")
+            return
+
+        for obj in objects.values():
+            if obj.__class__.__name__ == args[0]:
+                result.append(str(obj))
+
+        print(result)
+
+    # ---------------- UPDATE ----------------
     def do_update(self, arg):
         args = arg.split()
 
@@ -130,6 +133,13 @@ class HBNBCommand(cmd.Cmd):
             print("** instance id missing **")
             return
 
+        key = f"{args[0]}.{args[1]}"
+        objects = storage.all()
+
+        if key not in objects:
+            print("** no instance found **")
+            return
+
         if len(args) < 3:
             print("** attribute name missing **")
             return
@@ -138,16 +148,19 @@ class HBNBCommand(cmd.Cmd):
             print("** value missing **")
             return
 
-        key = args[0] + "." + args[1]
-        objs = storage.all()
+        obj = objects[key]
+        attr = args[2]
+        value = args[3].strip('"')
 
-        if key not in objs:
-            print("** no instance found **")
-            return
+        if hasattr(obj, attr):
+            old_type = type(getattr(obj, attr))
+            try:
+                value = old_type(value)
+            except:
+                pass
 
-        obj = objs[key]
-        setattr(obj, args[2], args[3])
-        storage.save()
+        setattr(obj, attr, value)
+        obj.save()
 
 
 if __name__ == "__main__":
