@@ -1,20 +1,15 @@
 #!/usr/bin/python3
-"""BaseModel class"""
-
 import uuid
 from datetime import datetime
 
 
 class BaseModel:
-    """Base class for all models"""
-
     def __init__(self, *args, **kwargs):
-        """Initialize BaseModel"""
         if kwargs:
             for key, value in kwargs.items():
                 if key == "__class__":
                     continue
-                elif key in ("created_at", "updated_at"):
+                if key in ["created_at", "updated_at"]:
                     setattr(self, key, datetime.fromisoformat(value))
                 else:
                     setattr(self, key, value)
@@ -31,13 +26,12 @@ class BaseModel:
 
     def save(self):
         self.updated_at = datetime.now()
-
         from models import storage
         storage.save()
 
     def to_dict(self):
-        obj = self.__dict__.copy()
-        obj["__class__"] = self.__class__.__name__
-        obj["created_at"] = self.created_at.isoformat()
-        obj["updated_at"] = self.updated_at.isoformat()
-        return obj
+        result = self.__dict__.copy()
+        result["__class__"] = self.__class__.__name__
+        result["created_at"] = self.created_at.isoformat()
+        result["updated_at"] = self.updated_at.isoformat()
+        return result

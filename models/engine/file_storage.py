@@ -1,12 +1,26 @@
 #!/usr/bin/python3
-"""FileStorage class"""
-
 import json
+from models.base_model import BaseModel
+from models.user import User
+from models.state import State
+from models.city import City
+from models.amenity import Amenity
+from models.place import Place
+from models.review import Review
+
+
+classes = {
+    "BaseModel": BaseModel,
+    "User": User,
+    "State": State,
+    "City": City,
+    "Amenity": Amenity,
+    "Place": Place,
+    "Review": Review
+}
 
 
 class FileStorage:
-    """Serializes and deserializes objects"""
-
     __file_path = "file.json"
     __objects = {}
 
@@ -18,24 +32,15 @@ class FileStorage:
         self.__objects[key] = obj
 
     def save(self):
-        json_dict = {}
-
+        obj_dict = {}
         for key, obj in self.__objects.items():
-            json_dict[key] = obj.to_dict()
+            obj_dict[key] = obj.to_dict()
 
         with open(self.__file_path, "w") as f:
-            json.dump(json_dict, f)
+            json.dump(obj_dict, f)
 
     def reload(self):
         try:
-            from models.base_model import BaseModel
-            from models.user import User
-
-            classes = {
-                "BaseModel": BaseModel,
-                "User": User
-            }
-
             with open(self.__file_path, "r") as f:
                 data = json.load(f)
 
@@ -43,6 +48,5 @@ class FileStorage:
                 cls_name = value["__class__"]
                 if cls_name in classes:
                     self.__objects[key] = classes[cls_name](**value)
-
         except FileNotFoundError:
             pass
