@@ -1,7 +1,11 @@
+#!/usr/bin/python3
+"""Defines the Place class."""
 from models.base_model import BaseModel
 
 
 class Place(BaseModel):
+    """Represents a place that can be rented."""
+
     city_id = ""
     user_id = ""
     name = ""
